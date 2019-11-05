@@ -177,3 +177,29 @@ def compute_mi_matrix(data, from_pickle=False, bins=20,
     df.to_pickle(pickle_file)
 
     return df
+
+def compute_ks_matrix(
+        data, from_pickle=False,
+        pickle_file=PROTEOME_KS_PICKLE):
+    import scipy.stats as stats
+    if from_pickle and os.path.isfile(pickle_file):
+        return pd.read_pickle(pickle_file)
+    N = data.shape[1]
+    count = 0
+    ks = np.zeros(shape=(N, N))
+    p_val = np.zeros(shape=(N, N))
+    for i in range(len(data.columns)):
+        for j in range(len(data.columns)):
+            count += 1
+            print('calculating MI score: {:2f}% completed'.format(count / (N * N)))
+            x = data.iloc[:, i]
+            y = data.iloc[:, j]
+            k, p = stats.ks_2samp(x.values, y.values)
+            ks[i, j] = k
+            p_val[i, j] = p
+    ks = pd.DataFrame(ks, index=data.columns, columns=data.columns)
+    p_val = pd.DataFrame(p_val, index=data.columns, columns=data.columns)
+    df = pd.concat({'ks': ks, 'pval': p_val}, axis=0)
+    df.to_pickle(pickle_file)
+
+    return df

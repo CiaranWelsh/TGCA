@@ -1,4 +1,3 @@
-
 import os
 import glob
 
@@ -22,17 +21,18 @@ LEVEL4_PROTEOME_DIR = os.path.join(PROTEOME_DATA_DIR, 'level4')
 PROTEOME_FILES_LEVEL3 = glob.glob(os.path.join(LEVEL3_PROTEOME_DIR, '*/*/*.csv'))
 PROTEOME_FILES_LEVEL4 = glob.glob(os.path.join(LEVEL4_PROTEOME_DIR, '*/*/*.csv'))
 PROTEOME_MI_PICKLE = os.path.join(LEVEL4_PROTEOME_DIR, 'MI.pickle')
+PROTEOME_KS_PICKLE = os.path.join(LEVEL4_PROTEOME_DIR, 'KS.pickle')
 UMAP_BY_PROTEIN_PICKLE = os.path.join(DATA_DIRECTORY, 'umap_by_gene.pickle')
 UMAP_BY_INDIVIDUAL_PICKLE = os.path.join(DATA_DIRECTORY, 'umap_by_sample.pickle')
 
+LEVEL4_PROTEOME_DIR_HISTOGRAMS = os.path.join(LEVEL4_PROTEOME_DIR, 'histograms')
 
+GENETIC_ALGORITHM_DATA_DIR = os.path.join(DATA_DIRECTORY, 'genetic_algorithm_data')
+if not os.path.isdir(GENETIC_ALGORITHM_DATA_DIR):
+    os.makedirs(GENETIC_ALGORITHM_DATA_DIR)
 
-
-
-
-
-
-
+# todo: Feature extraction
+# todo: Try SVM/Random forest/SOM unsupervised version
 
 
 
