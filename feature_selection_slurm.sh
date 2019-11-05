@@ -1,7 +1,7 @@
 #!/bin/sh
 conda activate py36
 
-wd=$(dirname "$0")
+wd="/mnt/nfs/home/b7053098/ciaran/TGCA"
 echo $wd
 echo ${wd}/tgca/ga_for_cluster.py
 for num_features in {1..10}; do
