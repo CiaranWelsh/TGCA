@@ -1,7 +1,14 @@
 import os
 import glob
+import subprocess
+try:
+    # for when working on the cluster
+    subprocess.check_call('squeue')
+    WORKING_DIRECTORY = '/mnt/nfs/home/b7053098/ciaran/TGCA'
+except FileNotFoundError:
+    # for when working locally
+    WORKING_DIRECTORY = '/media/ncw135/DATA/TGCA'
 
-WORKING_DIRECTORY = os.path.dirname(os.path.dirname(__file__))
 TGCA_DIRECTORY = os.path.join(WORKING_DIRECTORY, 'tgca')
 DATA_DIRECTORY = os.path.join(TGCA_DIRECTORY, 'data')
 TRANSCRIPT_DATA_DIRECTORY = os.path.join(DATA_DIRECTORY, 'transcriptome_FPKM')

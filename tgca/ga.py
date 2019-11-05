@@ -13,6 +13,7 @@ from deap import tools
 from sklearn.cluster import KMeans
 from sklearn.metrics import silhouette_score
 
+
 def get_data():
     data = pd.concat([pd.read_csv(i) for i in PROTEOME_FILES_LEVEL4], axis=0, sort=False)
     data = data.drop(['Cancer_Type', 'SetID'], axis=1)
@@ -51,10 +52,9 @@ def ga(toolbox, population_size=300, number_generations=40,
     return pop, log, hof
 
 
-
 if __name__ == "__main__":
     # the number of features to use for clustering
-    NUM_FEATURES = 10
+    NUM_FEATURES = 25
     # the number of clusters to use in kmeans
     NUM_CLUSTERS = 4
     # the number of jobs to use in kmeans
@@ -64,13 +64,12 @@ if __name__ == "__main__":
     # the number of generations
     N_GENERATIONS = 40
     # population size
-    N_POPULATION = 50
+    N_POPULATION = 200
 
     data = get_data()
     rows = data.index
     cols = data.columns
     data.columns = range(data.shape[1])
-
 
     # begin setup
     creator.create("FitnessMax", base.Fitness, weights=(1.0,))
@@ -79,7 +78,7 @@ if __name__ == "__main__":
     toolbox = base.Toolbox()
 
     # Attribute generator
-    toolbox.register("value", random.randint, 0, data.shape[1]-1)
+    toolbox.register("value", random.randint, 0, data.shape[1] - 1)
 
     # Structure initializers
     toolbox.register("individual", tools.initRepeat, creator.Individual, toolbox.value, NUM_FEATURES)
@@ -88,19 +87,14 @@ if __name__ == "__main__":
     toolbox.register("evaluate", evaluate, data=data, n_clusters=NUM_CLUSTERS, n_init=N_INIT, n_jobs=N_JOBS)
     toolbox.register("mate", tools.cxTwoPoint)
     toolbox.register("mutate", tools.mutFlipBit, indpb=0.05)
-    toolbox.register("select", tools.selTournament, tournsize=3)
+    toolbox.register("select", tools.selTournament, tournsize=N_POPULATION // 10)
 
-    # ga(toolbox, population_size=N_POPULATION, number_generations=N_GENERATIONS,
-    #      cxpb=0.5, mutpb=0.2)
-    x = [77, 77, 77, 77, 77, 44, 45, 77, 204, 77]
-    print(data[x])
-    print(cols[x])
-
-
-
-
-
-
-
-
+    pop, log, hof = ga(toolbox, population_size=N_POPULATION, number_generations=N_GENERATIONS,
+                       cxpb=0.5, mutpb=0.2)
+    print(pop)
+    print(log)
+    print(hof)
+    # x = [77, 77, 77, 77, 77, 44, 45, 77, 204, 77]
+    # print(data[x])
+    # print(cols[x])
 
