@@ -1,8 +1,8 @@
 #!/bin/sh
 conda activate py36
 
-wd=${dirname $0}
-
+wd=$(dirname $0)
+echo $wd
 for num_features in {1..10}; do
   for num_clusters in {3..10}; do
     echo "${num_features}_${num_clusters}"
