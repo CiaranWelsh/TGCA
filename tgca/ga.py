@@ -90,5 +90,17 @@ if __name__ == "__main__":
     toolbox.register("mutate", tools.mutFlipBit, indpb=0.05)
     toolbox.register("select", tools.selTournament, tournsize=3)
 
-    ga(toolbox, population_size=N_POPULATION, number_generations=N_GENERATIONS,
-         cxpb=0.5, mutpb=0.2)
+    # ga(toolbox, population_size=N_POPULATION, number_generations=N_GENERATIONS,
+    #      cxpb=0.5, mutpb=0.2)
+    x = [77, 77, 77, 77, 77, 44, 45, 77, 204, 77]
+    print(data[x])
+    print(cols[x])
+
+
+
+
+
+
+
+
+
