@@ -1,3 +1,9 @@
+# add root and source to pythonpath
+import site
+import os
+# site.addsitedir(os.path.dirname(__file__))
+site.addsitedir(os.path.dirname(os.path.dirname(__file__)))
+
 import array
 import random
 
