@@ -58,9 +58,6 @@ def ga(toolbox, population_size=300, number_generations=40,
     return pop, log, hof
 
 
-def plot_clusters(data):
-    idx = [38, 175, 68, 112, 8, 87, 47, 14, 213, 213, 193, 147, 175, 77, 144, 47, 42, 152, 75, 68, 46, 40, 77, 160, 57]
-    
 
 if __name__ == "__main__":
     # the number of features to use for clustering
