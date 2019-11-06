@@ -2,3 +2,4 @@
 *.pyc
 transcriptome_FPKM
 *.png
+data.csv
