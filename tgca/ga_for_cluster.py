@@ -2,7 +2,7 @@ import pickle
 # add root and source to pythonpath
 import site
 import os
-from  operator import attrgetter
+from operator import attrgetter
 
 # site.addsitedir(os.path.dirname(__file__))
 from deap.algorithms import varAnd
@@ -42,6 +42,7 @@ def evaluate(individual, data, n_clusters, n_init=30, n_jobs=6):
     score = silhouette_score(data, kmeans.labels_),
     return score
 
+
 def selRandom(individuals, k):
     """Select *k* individuals at random from the input *individuals* with
     replacement. The list returned contains references to the input
@@ -55,6 +56,7 @@ def selRandom(individuals, k):
     python base :mod:`random` module.
     """
     return [random.choice(individuals) for i in range(k)]
+
 
 def selTournament(individuals, k, tournsize, fit_attr="fitness"):
     """Select the best individual among *tournsize* randomly chosen
@@ -239,7 +241,6 @@ def evaluate_and_plot(individual, data, n_clusters, n_init=30,
         else:
             plt.savefig(filename, dpi=300, bbox_inches='tight')
 
-
     # work out how many rows to suit the number of columns
     # total = data.shape[1]
     # nrows = int(np.floor(total / ncols))
@@ -260,21 +261,39 @@ def evaluate_and_plot(individual, data, n_clusters, n_init=30,
 
 
 if __name__ == "__main__":
+    #####################################################
+    #  command line configuration                       #
+    #####################################################
     parser = argparse.ArgumentParser()
-    parser.add_argument('num_clusters', type=int, help='Number of clusters to use in kmeans algorithm')
-    parser.add_argument('num_features', type=int, help='Number of features to use in clustering')
-    parser.add_argument('--num_jobs', nargs='?', default=6, type=int, help='Number of jobs to use in clustering')
-    parser.add_argument('--num_generations', nargs='?', default=50, type=int, help='Number of generations to evolve')
-    parser.add_argument('--num_population', nargs='?', default=300, type=int,
-                        help='Number of individuals in population')
-    parser.add_argument('--num_init', nargs='?', default=30, type=int,
-                        help='Number of random initialisations to use in k means')
-    parser.add_argument('--cxpb', nargs='?', default=0.5, type=float, help='The probability of mating two individuals')
-    parser.add_argument('--mutpb', nargs='?', default=0.2, type=float,
-                        help='The probability of mutating an individuals')
-    parser.add_argument('--tourny', nargs='?', default=0.2, type=float, help='The proportion of individuals that are '
-                                                                             'randomly selected for the tournment selection'
-                                                                             'operator')
+    subparsers = parser.add_subparsers()
+
+    # commands for the runner program
+    runner_parser = subparsers.add_parser('runner',
+                                          description='Run genetic algorithm feature selection for k means clustering of RPPA data')
+    runner_parser.add_argument('num_clusters', type=int, help='Number of clusters to use in kmeans algorithm')
+    runner_parser.add_argument('num_features', type=int, help='Number of features to use in clustering')
+    runner_parser.add_argument('--num_jobs', nargs='?', default=6, type=int, help='Number of jobs to use in clustering')
+    runner_parser.add_argument('--num_generations', nargs='?', default=50, type=int,
+                               help='Number of generations to evolve')
+    runner_parser.add_argument('--num_population', nargs='?', default=300, type=int,
+                               help='Number of individuals in population')
+    runner_parser.add_argument('--num_init', nargs='?', default=30, type=int,
+                               help='Number of random initialisations to use in k means')
+    runner_parser.add_argument('--cxpb', nargs='?', default=0.5, type=float,
+                               help='The probability of mating two individuals')
+    runner_parser.add_argument('--mutpb', nargs='?', default=0.2, type=float,
+                               help='The probability of mutating an individuals')
+    runner_parser.add_argument('--tourny', nargs='?', default=0.2, type=float,
+                               help='The proportion of individuals that are '
+                                    'randomly selected for the tournment selection'
+                                    'operator')
+    runner_parser.add_argument('--run', nargs='?', default=True, type=bool, help='Whether to run the problem or not')
+    runner_parser.add_argument('--pca_plot', nargs='?', default=True, type=bool,
+                               help='Takes best feature set, performs the kmeans'
+                                    ' then plots in PCA reduced 2D space')
+    plotter_parser = subparsers.add_parser('plotter', description='Plot the results')
+    plotter_parser.add_argument('--elbow', nargs='?', default=True, type=bool,
+                                help='K on the x-axis with silhouette score on the y')
     args = parser.parse_args()
     print(args)
 
@@ -300,14 +319,13 @@ if __name__ == "__main__":
         raise ValueError('tourny argument must be between 0 and 1. Got {}'.format(TOURNAMENT_SELECTION))
 
     # run the genetic algorithm
-    RUN_GA = False
+    RUN_GA = args.run
     # visualise some results
-    VIZ_GA = True
-    # pca PLOT
-    VIZ_BY_PCA = False
-    # el
-    ELBOW = True
+    VIZ_GA = args.pca_plot
 
+    ##################################################################
+    # Main execution code. Responds to command line arguments        #
+    ##################################################################
 
     data = get_data()
     rows = data.index
@@ -332,11 +350,22 @@ if __name__ == "__main__":
     selection_size = np.floor(N_POPULATION * TOURNAMENT_SELECTION)
     toolbox.register("select", selTournament, tournsize=int(selection_size) if selection_size > 0 else 1)
 
-
     if RUN_GA:
         pop, log, hof = ga(toolbox, population_size=N_POPULATION, number_generations=N_GENERATIONS, cxpb=CXPB,
                            mutpb=MUTPB)
-        result = dict(pop=pop, log=log, hof=hof)
+        result = dict(pop=pop, log=log, hof=hof,
+                      NUM_FEATURES=NUM_FEATURES,
+                      NUM_CLUSTERS=NUM_CLUSTERS,
+                      N_JOBS=N_JOBS,
+                      N_INIT=N_INIT,
+                      N_GENERATIONS=N_GENERATIONS,
+                      N_POPULATION=N_POPULATION,
+                      CXPB=CXPB,
+                      MUTPB=MUTPB,
+                      TOURNAMENT_SELECTION=TOURNAMENT_SELECTION,
+                      RUN_GA=RUN_GA,
+                      VIZ_GA=VIZ_GA,
+                      )
 
         fname = os.path.join(GENETIC_ALGORITHM_DATA_DIR, f'features_{NUM_FEATURES}_clusters_{NUM_CLUSTERS}.pickle')
 
@@ -351,9 +380,5 @@ if __name__ == "__main__":
         print(res['hof'], list(data.iloc[:, res['hof'][0]].columns))
         best_individual = creator.Individual(res['hof'])
 
-        if VIZ_BY_PCA:
-            evaluate_and_plot(best_individual, data, n_clusters=NUM_CLUSTERS,
+        evaluate_and_plot(best_individual, data, n_clusters=NUM_CLUSTERS,
                           n_jobs=N_JOBS, n_init=N_INIT, plot_pca=True)
-
-        if ELBOW:
-            print(pickle_files)
