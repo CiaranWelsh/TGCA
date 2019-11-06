@@ -14,5 +14,4 @@ ks_stats.csv
 similarity_measure.csv
 umap_by_gene.pickle
 umap_by_sample.pickle
-level3
 

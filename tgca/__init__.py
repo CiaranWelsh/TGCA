@@ -25,8 +25,7 @@ MUTUAL_INFORMATION_PICKLE = os.path.join(DATA_DIRECTORY, 'mutual_infomation.pick
 PROTEOME_DATA_DIR = os.path.join(DATA_DIRECTORY, 'proteome')
 LEVEL3_PROTEOME_DIR = os.path.join(PROTEOME_DATA_DIR, 'level3')
 LEVEL4_PROTEOME_DIR = os.path.join(PROTEOME_DATA_DIR, 'level4')
-PROTEOME_FILES_LEVEL3 = glob.glob(os.path.join(LEVEL3_PROTEOME_DIR, '*/*/*.csv'))
-PROTEOME_FILES_LEVEL4 = glob.glob(os.path.join(LEVEL4_PROTEOME_DIR, '*/*/*.csv'))
+PROTEOME_DATA_FILE = os.path.join(LEVEL4_PROTEOME_DIR, 'TCGA-BRCA-L4.csv')
 
 PROTEOME_MI_PICKLE = os.path.join(LEVEL4_PROTEOME_DIR, 'MI.pickle')
 PROTEOME_KS_PICKLE = os.path.join(LEVEL4_PROTEOME_DIR, 'KS.pickle')

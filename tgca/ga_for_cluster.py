@@ -27,7 +27,7 @@ from tgca import *
 
 
 def get_data():
-    data = pd.concat([pd.read_csv(i) for i in PROTEOME_FILES_LEVEL4], axis=0, sort=False)
+    data = pd.read_csv(PROTEOME_DATA_FILE)
     data = data.drop(['Cancer_Type', 'SetID'], axis=1)
     data = data.set_index(['Sample_ID', 'Sample_Type'], append=True)
     data = data[sorted(data.columns)]
@@ -331,7 +331,7 @@ if __name__ == "__main__":
     rows = data.index
     cols = data.columns
 
-    # begin setup
+    # begin setup of components needed for genetic algorithm
     creator.create("FitnessMax", base.Fitness, weights=(1.0,))
     creator.create("Individual", list, fitness=creator.FitnessMax)
 

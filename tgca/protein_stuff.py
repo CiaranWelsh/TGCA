@@ -32,7 +32,7 @@ def biology_led_subset():
 
 
 def get_data():
-    data = pd.concat([pd.read_csv(i) for i in PROTEOME_FILES_LEVEL4], axis=0, sort=False)
+    data = pd.concat([pd.read_csv(i) for i in PROTEOME_DATA_FILE], axis=0, sort=False)
     data = data.drop(['Cancer_Type', 'SetID'], axis=1)
     data = data.set_index(['Sample_ID', 'Sample_Type'], append=True)
     data = data[sorted(data.columns)]

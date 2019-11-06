@@ -1,0 +1,17 @@
+Dataset_ID	TCGA-BRCA-L3-S87
+Source	TCGA
+Platform	MDA_RPPA_Core
+Sample_Type	patient tumor
+Included_In_Summary	yes
+Cancer_Type	Breast invasive carcinoma
+RPPA_Batch_ID	87
+Species	Homo sapiens
+Num_Samples	75
+Num_Antibodies	221
+Normalization_Method	Loading control
+Normalization_Description	(1) median center the protein columns across samples based on level 2 data; (2) median center the sample rows across proteins by subtracting each sample median.
+Dataset_Description	Breast invasive carcinoma (BRCA) batch 87
+Comments	NA
+Reference	NA
+PMID	NA
+TCPA_Release	"4.2"
