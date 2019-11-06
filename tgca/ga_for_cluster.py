@@ -272,7 +272,7 @@ if __name__ == "__main__":
     parser.add_argument('--cxpb', nargs='?', default=0.5, type=float, help='The probability of mating two individuals')
     parser.add_argument('--mutpb', nargs='?', default=0.2, type=float,
                         help='The probability of mutating an individuals')
-    parser.add_argument('--tourny', nargs='?', default=0.1, type=float, help='The proportion of individuals that are '
+    parser.add_argument('--tourny', nargs='?', default=0.2, type=float, help='The proportion of individuals that are '
                                                                              'randomly selected for the tournment selection'
                                                                              'operator')
     args = parser.parse_args()
