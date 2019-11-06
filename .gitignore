@@ -3,3 +3,5 @@
 transcriptome_FPKM
 *.png
 data.csv
+transcriptome_data.csv
+data.pickle
