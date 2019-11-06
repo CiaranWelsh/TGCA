@@ -5,3 +5,14 @@ transcriptome_FPKM
 data.csv
 transcriptome_data.csv
 data.pickle
+clinical.cart.2019-10-14.json
+id_map.pickle
+mutual_infomation.pickle
+KS.pickle
+MI.pickle
+ks_stats.csv
+similarity_measure.csv
+umap_by_gene.pickle
+umap_by_sample.pickle
+level3
+

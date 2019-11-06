@@ -382,3 +382,5 @@ if __name__ == "__main__":
 
         evaluate_and_plot(best_individual, data, n_clusters=NUM_CLUSTERS,
                           n_jobs=N_JOBS, n_init=N_INIT, plot_pca=True)
+
+        # todo use umap for dimreduction instead of PCA
