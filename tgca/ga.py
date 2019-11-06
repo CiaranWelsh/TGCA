@@ -58,6 +58,10 @@ def ga(toolbox, population_size=300, number_generations=40,
     return pop, log, hof
 
 
+def plot_clusters(data):
+    idx = [38, 175, 68, 112, 8, 87, 47, 14, 213, 213, 193, 147, 175, 77, 144, 47, 42, 152, 75, 68, 46, 40, 77, 160, 57]
+    
+
 if __name__ == "__main__":
     # the number of features to use for clustering
     NUM_FEATURES = 25
@@ -95,11 +99,11 @@ if __name__ == "__main__":
     toolbox.register("mutate", tools.mutFlipBit, indpb=0.05)
     toolbox.register("select", tools.selTournament, tournsize=N_POPULATION // 10)
 
-    pop, log, hof = ga(toolbox, population_size=N_POPULATION, number_generations=N_GENERATIONS,
-                       cxpb=0.5, mutpb=0.2)
-    print(pop)
-    print(log)
-    print(hof)
+    # pop, log, hof = ga(toolbox, population_size=N_POPULATION, number_generations=N_GENERATIONS,
+    #                    cxpb=0.5, mutpb=0.2)
+    # print(pop)
+    # print(log)
+    # print(hof)
     # x = [77, 77, 77, 77, 77, 44, 45, 77, 204, 77]
     # print(data[x])
     # print(cols[x])

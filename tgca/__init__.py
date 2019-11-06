@@ -3,7 +3,7 @@ import glob
 import subprocess
 try:
     # for when working on the cluster
-    subprocess.check_call('squeue')
+    subprocess.check_call('sinfo')
     WORKING_DIRECTORY = '/mnt/nfs/home/b7053098/ciaran/TGCA'
 except FileNotFoundError:
     # for when working locally
@@ -39,6 +39,8 @@ LEVEL4_PROTEOME_DIR_HISTOGRAMS = os.path.join(LEVEL4_PROTEOME_DIR, 'histograms')
 GENETIC_ALGORITHM_DATA_DIR = os.path.join(DATA_DIRECTORY, 'genetic_algorithm_data')
 if not os.path.isdir(GENETIC_ALGORITHM_DATA_DIR):
     os.makedirs(GENETIC_ALGORITHM_DATA_DIR)
+
+GENETIC_ALGORITHM_RESULTS_PICKLES = glob.glob(os.path.join(GENETIC_ALGORITHM_DATA_DIR, '*.pickle'))
 
 # todo: Feature extraction
 # todo: Try SVM/Random forest/SOM unsupervised version

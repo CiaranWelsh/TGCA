@@ -70,7 +70,7 @@ if __name__ == "__main__":
     # the number of generations
     N_GENERATIONS = 50
     # population size
-    N_POPULATION = 200
+    N_POPULATION = 300
 
     data = get_data()
     rows = data.index
@@ -102,4 +102,4 @@ if __name__ == "__main__":
     import pickle
 
     with open(fname, 'wb') as f:
-        pickle.dump(result)
+        pickle.dump(result, f)
