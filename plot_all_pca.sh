@@ -13,12 +13,15 @@ echo $wd
 echo ${wd}/tgca/ga_for_cluster.py
 for num_features in {3..25}; do
   for num_clusters in {2..20}; do
-    command="python ${wd}/tgca/ga_for_cluster.py plotter --num_clusters $num_clusters --num_features $num_features --pca"
+    pca_command="python ${wd}/tgca/ga_for_cluster.py plotter --num_clusters $num_clusters --num_features $num_features --pca"
+    diagnosis_command="python ${wd}/tgca/ga_for_cluster.py plotter --num_clusters $num_clusters --num_features $num_features --diagnosis"
     if [ "$cluster" == true ] ; then
       FLAGS="--ntasks=1 --cpus-per-task=1 --job-name=fs_${num_features}_${num_clusters}"
-      sbatch $FLAGS --wrap="$command"
+      sbatch $FLAGS --wrap="$pca_command"
+      sbatch $FLAGS --wrap="$diagnosis_command"
     else
-      $command
+      $pca_command
+      $diagnosis_command
     fi
   done
 done

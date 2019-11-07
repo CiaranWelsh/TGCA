@@ -105,7 +105,12 @@ def cxOnePoint(ind1, ind2):
     This function uses the :func:`~random.randint` function from the
     python base :mod:`random` module.
     """
+    if ind1 == [] or ind2 == []:
+        raise ValueError('empty individual')
     size = min(len(ind1), len(ind2))
+    # when size is 1 we get an error with crossover. So just return
+    if size == 1:
+        return ind1, ind2
     cxpoint = random.randint(1, size - 1)
     ind1[cxpoint:], ind2[cxpoint:] = ind2[cxpoint:], ind1[cxpoint:]
 
@@ -143,8 +148,8 @@ def mutUniformInt(individual, low, up, indpb):
     return individual,
 
 
-def mutUniformFromOptions(individual, data, indpb):
-    """Mutate an individual by replacing attributes, with probability *indpb*,
+def mutUniformFromOptions(individual, data, ind_mutpb):
+    """Mutate an individual by replacing attributes, with probability *ind_mutpb*,
     by a integer uniformly drawn between *low* and *up* inclusively.
 
     :param individual: :term:`Sequence <sequence>` individual to be mutated.
@@ -161,7 +166,7 @@ def mutUniformFromOptions(individual, data, indpb):
     size = len(individual)
     options = list(set(individual).difference(set(data.columns)))
     for i in range(size):
-        if random.random() < indpb:
+        if random.random() < ind_mutpb:
             individual[i] = np.random.choice(options)
 
     return individual,
@@ -403,7 +408,7 @@ class ResultPlotterBase(PlotterBase):
     def __init__(self, individual, data, n_clusters, n_init=30,
                  n_jobs=6, plot_pca=False, filename=None,
                  ncol=1):
-        PlotterBase.__init__(filename)
+        PlotterBase.__init__(self, filename=filename)
 
         self.ncol = ncol
         self.filename = filename
@@ -446,7 +451,7 @@ class PCAPlotter(ResultPlotterBase):
         plt.ylabel('PC2 ({}%)'.format(round(pca.explained_variance_ratio_[1], 4) * 100))
         from functools import reduce
         annot = reduce(lambda x, y: f'{x}\n{y}', ids)
-        plt.title("Silhouette Score={}".format(round(self.score, 3)))
+        plt.title("Population size= {}, Silhouette Score={}".format(args.num_population, round(self.score, 3)))
         plt.annotate('Proteins\n' + annot, xycoords=ax.transAxes, xy=(1, 0.1))
         if self.filename is None:
             plt.show()
@@ -558,6 +563,11 @@ if __name__ == "__main__":
                                help='The probability of mating two individuals')
     runner_parser.add_argument('--mutpb', nargs='?', default=0.2, type=float,
                                help='The probability of mutating an individual')
+    runner_parser.add_argument('--ind_mutpb', nargs='?', default=0.05, type=float,
+                               help='The probability of a gene getting mutated in '
+                                    'a single individual (i.e. each element of each '
+                                    'individual may or may not be mutated, depending '
+                                    'on this probability)')
     runner_parser.add_argument('--tourny', nargs='?', default=0.2, type=float,
                                help='The proportion of individuals that are '
                                     'randomly selected for the tournment selection'
@@ -621,6 +631,7 @@ if __name__ == "__main__":
         setattr(args, 'num_population', sim_results['num_population'] if 'num_population' in sim_results else sim_results['N_POPULATION'])
         setattr(args, 'cxpb', sim_results['cxpb'] if 'cxpb' in sim_results else sim_results['CXPB'])
         setattr(args, 'mutpb', sim_results['mutpb'] if 'mutpb' in sim_results else sim_results['MUTPB'])
+        setattr(args, 'ind_mutpb', sim_results['ind_mutpb'] if 'int_mutpb' in sim_results else None)
         setattr(args, 'tourny', sim_results['tourny'] if 'tourny' in sim_results else sim_results['TOURNAMENT_SELECTION'])
         setattr(args, 'run', False if 'run' in sim_results else sim_results['RUN_GA'])
 
@@ -642,7 +653,7 @@ if __name__ == "__main__":
     toolbox.register("evaluate", evaluate, data=data, n_clusters=args.num_clusters, n_init=args.num_init,
                      n_jobs=args.num_jobs)
     toolbox.register("mate", cxOnePoint)
-    toolbox.register("mutate", mutUniformFromOptions, data=data, indpb=0.05)
+    toolbox.register("mutate", mutUniformFromOptions, data=data, ind_mutpb=args.ind_mutpb)
     selection_size = np.floor(args.num_population * args.tourny)
     toolbox.register("select",
                      selTournament,
@@ -701,6 +712,6 @@ if __name__ == "__main__":
         fname = os.path.join(GENETIC_ALGORITHM_DIAGNOSIS_PLOTS_DIR,
                              f'features_{args.num_features}_clusters_{args.num_clusters}.png')
 
-        DiagnosisPlotter().plot(sim_results)
+        DiagnosisPlotter(filename=fname).plot(sim_results)
 
         print(logbook)
