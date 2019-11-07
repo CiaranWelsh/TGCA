@@ -37,6 +37,8 @@ def get_data():
     data = data.set_index(['Sample_ID', 'Sample_Type'], append=True)
     data = data[sorted(data.columns)]
     data = data.dropna(how='any', axis=1)
+    data = data[data['ERALPHA'] > 0]
+    data = data.xs('Primary', level=2)
     return data
 
 
@@ -330,7 +332,7 @@ def eaSimple(population, toolbox, cxpb, mutpb, ngen, stats=None,
         avg_duration = avg_duration + ((1.0 / gen) * (duration - avg_duration))
 
         logbook.record(gen=gen, nevals=len(invalid_ind), gen_duration=duration, avg_duration=avg_duration,
-                       estimated_minutes_left=((ngen+1-gen)*avg_duration)/60, **record)
+                       estimated_minutes_left=((ngen + 1 - gen) * avg_duration) / 60, **record)
         if verbose:
             print(logbook.stream)
 
@@ -387,6 +389,12 @@ def read_pickle(f):
 
 
 class PlotterBase:
+
+    def __init__(self, filename=None):
+        self.filename = filename
+
+
+class ResultPlotterBase(PlotterBase):
     """
     Shared base for plotter functions. Requires the same parameters used for
     k-means during features selection so the clustering can be reproduced.
@@ -395,6 +403,8 @@ class PlotterBase:
     def __init__(self, individual, data, n_clusters, n_init=30,
                  n_jobs=6, plot_pca=False, filename=None,
                  ncol=1):
+        PlotterBase.__init__(filename)
+
         self.ncol = ncol
         self.filename = filename
         self.n_jobs = n_jobs
@@ -420,7 +430,7 @@ class PlotterBase:
         raise NotImplementedError
 
 
-class PCAPlotter(PlotterBase):
+class PCAPlotter(ResultPlotterBase):
 
     def plot(self):
         pca = PCA(n_components=2)
@@ -445,7 +455,7 @@ class PCAPlotter(PlotterBase):
             print('Results saved to "{}"'.format(self.filename))
 
 
-class UMAPPlotter(PlotterBase):
+class UMAPPlotter(ResultPlotterBase):
 
     def plot(self, n_neighbors=5, min_dist=0.3, metric='correlation'):
         embedding = umap.UMAP(n_neighbors=n_neighbors,
@@ -467,7 +477,7 @@ class UMAPPlotter(PlotterBase):
         #     plt.savefig(self.filename, dpi=300, bbox_inches='tight')
 
 
-class DistributionPlotter(PlotterBase):
+class DistributionPlotter(ResultPlotterBase):
 
     def plot(self):
         """
@@ -492,6 +502,29 @@ class DistributionPlotter(PlotterBase):
         #     # plot_data = data[x]
         #     sns.scatterplot(x='level_0', y=x, data=data)
         # plt.show()
+
+
+class DiagnosisPlotter(PlotterBase):
+
+
+    def plot(self, sim_results):
+        logbook = sim_results['log']
+        gen = logbook.select('gen')
+        fig = plt.figure()
+        plt.errorbar(gen, logbook.select('avg'), yerr=logbook.select('std'), label='avg fitness')
+        plt.plot(gen, logbook.select('min'), label='min')
+        plt.plot(gen, logbook.select('max'), label='max')
+        plt.plot(gen, [i / sim_results['num_population'] for i in logbook.select('nevals')],
+                 label='% evaluated')
+        plt.ylabel('score')
+        plt.xlabel('Generation')
+        plt.title(f'population size={sim_results["num_population"]}')
+        sns.despine(fig=fig, top=True, right=True)
+        plt.legend(loc=(1, 0.1))
+        if self.filename:
+            plt.savefig(self.filename, bbox_inches='tight', dpi=300)
+        else:
+            plt.show()
 
 
 if __name__ == "__main__":
@@ -532,7 +565,8 @@ if __name__ == "__main__":
 
     runner_parser.add_argument('--run', nargs='?', default=True, type=bool, help='Whether to run the problem or not')
     plotter_parser = subparsers.add_parser('plotter', description='Plot the results')
-    plotter_parser.set_defaults(mode='plotter')
+    plotter_parser.set_defaults(mode='plotter', umap=False, pca=False, tsne=False,
+                                diagnosis=False)
 
     plotter_parser.add_argument('--num_clusters', type=int, help='Number of clusters to use in kmeans algorithm',
                                 required='--pca' in sys.argv or '--umap' in sys.argv or '--tsne' in sys.argv)
@@ -547,6 +581,9 @@ if __name__ == "__main__":
     plotter_parser.add_argument('--tsne', help='Cluster with k means then do dimentionality reduction '
                                                'using TSNE to visualise the clusters in 2D',
                                 action='store_true')
+    plotter_parser.add_argument('--diagnosis', help='Plots traces of the GA performance',
+                                action='store_true')
+
     plotter_parser.add_argument('--elbow', help='K on the x-axis with silhouette score on the y',
                                 action='store_true')
 
@@ -565,6 +602,7 @@ if __name__ == "__main__":
         setattr(args, 'pca', False)
         setattr(args, 'tsne', False)
         setattr(args, 'umap', False)
+        setattr(args, 'diagnosis', False)
 
     elif args.mode == 'plotter':
         print('Executing in plotter mode')
@@ -574,17 +612,17 @@ if __name__ == "__main__":
         if not os.path.isfile(pickle_file):
             raise FileNotFoundError(f'"{pickle_file}". Check your n_features and n_clusters arguments')
         # if we are doing a larger run comparison plot then need to do something else. Perhaps another argument parser
-        dct = read_pickle(pickle_file)
+        sim_results = read_pickle(pickle_file)
 
         # set the attributes that were used to generate the pickle file
-        setattr(args, 'num_init', dct['num_init'] if 'num_init' in dct else dct['N_INIT'])
-        setattr(args, 'num_jobs', dct['num_jobs'] if 'num_jobs' in dct else dct['N_JOBS'])
-        setattr(args, 'num_generations', dct['num_generations'] if 'num_generations' in dct else dct['N_GENERATIONS'])
-        setattr(args, 'num_population', dct['num_population'] if 'num_population' in dct else dct['N_POPULATION'])
-        setattr(args, 'cxpb', dct['cxpb'] if 'cxpb' in dct else dct['CXPB'])
-        setattr(args, 'mutpb', dct['mutpb'] if 'mutpb' in dct else dct['MUTPB'])
-        setattr(args, 'tourny', dct['tourny'] if 'tourny' in dct else dct['TOURNAMENT_SELECTION'])
-        setattr(args, 'run', False if 'run' in dct else dct['RUN_GA'])
+        setattr(args, 'num_init', sim_results['num_init'] if 'num_init' in sim_results else sim_results['N_INIT'])
+        setattr(args, 'num_jobs', sim_results['num_jobs'] if 'num_jobs' in sim_results else sim_results['N_JOBS'])
+        setattr(args, 'num_generations', sim_results['num_generations'] if 'num_generations' in sim_results else sim_results['N_GENERATIONS'])
+        setattr(args, 'num_population', sim_results['num_population'] if 'num_population' in sim_results else sim_results['N_POPULATION'])
+        setattr(args, 'cxpb', sim_results['cxpb'] if 'cxpb' in sim_results else sim_results['CXPB'])
+        setattr(args, 'mutpb', sim_results['mutpb'] if 'mutpb' in sim_results else sim_results['MUTPB'])
+        setattr(args, 'tourny', sim_results['tourny'] if 'tourny' in sim_results else sim_results['TOURNAMENT_SELECTION'])
+        setattr(args, 'run', False if 'run' in sim_results else sim_results['RUN_GA'])
 
     # read our data in
     data = get_data()
@@ -606,7 +644,9 @@ if __name__ == "__main__":
     toolbox.register("mate", cxOnePoint)
     toolbox.register("mutate", mutUniformFromOptions, data=data, indpb=0.05)
     selection_size = np.floor(args.num_population * args.tourny)
-    toolbox.register("select", selTournament, tournsize=int(selection_size) if selection_size > 0 else 1)
+    toolbox.register("select",
+                     selTournament,
+                     tournsize=int(selection_size) if selection_size > 0 else 1)
     if args.mode == 'runner' and args.run:
         print('Executing in "runner" mode')
         pop, log, hof = ga(toolbox, population_size=args.num_population, number_generations=args.num_generations,
@@ -632,8 +672,8 @@ if __name__ == "__main__":
             pickle.dump(result, f)
 
     if args.pca or args.tsne or args.umap:
-        print(dct.keys())
-        best_individual = creator.Individual(dct['hof'])
+        print(sim_results.keys())
+        best_individual = creator.Individual(sim_results['hof'])
 
     if args.pca:
         print('plotting with pca dim reduction')
@@ -642,7 +682,7 @@ if __name__ == "__main__":
         p = PCAPlotter(best_individual, data, n_clusters=args.num_clusters,
                        n_jobs=args.num_jobs, n_init=args.num_init, plot_pca=True,
                        filename=fname)
-        # p.plot()
+        p.plot()
     if args.umap:
         fname = os.path.join(GENETIC_ALGORITHM_UMAP_PLOTS_DIR,
                              f'features_{args.num_features}_clusters_{args.num_clusters}.png')
@@ -654,3 +694,13 @@ if __name__ == "__main__":
                         metric='correlation'
                         )
         # p.plot()
+
+    if args.diagnosis:
+        print(sim_results.keys())
+        logbook = sim_results['log']
+        fname = os.path.join(GENETIC_ALGORITHM_DIAGNOSIS_PLOTS_DIR,
+                             f'features_{args.num_features}_clusters_{args.num_clusters}.png')
+
+        DiagnosisPlotter().plot(sim_results)
+
+        print(logbook)
