@@ -211,19 +211,11 @@ def varAnd(population, toolbox, cxpb, mutpb):
             offspring[i - 1], offspring[i] = toolbox.mate(offspring[i - 1],
                                                           offspring[i])
             del offspring[i - 1].fitness.values, offspring[i].fitness.values
-            # if len(offspring[i - 1]) != len(set(offspring[i - 1])):
-            #     raise ValueError(
-            #         'Offspring i-1 has duplicates resulting from mating: {}'.format(sorted(offspring[i - 1])))
-            # if len(offspring[i]) != len(set(offspring[i])):
-            #     raise ValueError('Offspring i has duplicates resulting from mating: {}'.format(sorted(offspring[1])))
 
     for i in range(len(offspring)):
         if random.random() < mutpb:
             offspring[i], = toolbox.mutate(offspring[i])
             del offspring[i].fitness.values
-            # if len(offspring[i]) != len(set(offspring[i])):
-            #     raise ValueError(
-            #         'Offspring i-1 has duplicates resulting from mutating: {}'.format(sorted(offspring[i])))
 
     return offspring
 
@@ -289,7 +281,8 @@ def eaSimple(population, toolbox, cxpb, mutpb, ngen, stats=None,
        Basic Algorithms and Operators", 2000.
     """
     logbook = tools.Logbook()
-    logbook.header = ['gen', 'nevals'] + (stats.fields if stats else [])
+    logbook.header = ['gen', 'nevals', 'gen_duration',
+                      'avg_duration', 'estimated_minutes_left'] + (stats.fields if stats else [])
 
     # Evaluate the individuals with an invalid fitness
     invalid_ind = [ind for ind in population if not ind.fitness.valid]
@@ -305,9 +298,11 @@ def eaSimple(population, toolbox, cxpb, mutpb, ngen, stats=None,
     if verbose:
         print(logbook.stream)
     import time
+    import datetime
+    avg_duration = 0
     # Begin the generational process
     for gen in range(1, ngen + 1):
-        gen_start_time = time.now()
+        gen_start_time = time.time()
 
         # Select the next generation individuals
         offspring = toolbox.select(population, len(population))
@@ -331,11 +326,11 @@ def eaSimple(population, toolbox, cxpb, mutpb, ngen, stats=None,
 
         # Append the current generation statistics to the logbook
         record = stats.compile(population) if stats else {}
-        duration = time.time()-gen_start_time
-        avg_duration = avg_duration + 1.0 / i * (duration - avg_duration)
+        duration = time.time() - gen_start_time
+        avg_duration = avg_duration + ((1.0 / gen) * (duration - avg_duration))
 
         logbook.record(gen=gen, nevals=len(invalid_ind), gen_duration=duration, avg_duration=avg_duration,
-                       expected_end=(ngen+1-i)*avg_duration, **record)
+                       estimated_minutes_left=((ngen+1-gen)*avg_duration)/60, **record)
         if verbose:
             print(logbook.stream)
 
@@ -647,7 +642,7 @@ if __name__ == "__main__":
         p = PCAPlotter(best_individual, data, n_clusters=args.num_clusters,
                        n_jobs=args.num_jobs, n_init=args.num_init, plot_pca=True,
                        filename=fname)
-        p.plot()
+        # p.plot()
     if args.umap:
         fname = os.path.join(GENETIC_ALGORITHM_UMAP_PLOTS_DIR,
                              f'features_{args.num_features}_clusters_{args.num_clusters}.png')
@@ -658,4 +653,4 @@ if __name__ == "__main__":
                         min_dist=0.3,
                         metric='correlation'
                         )
-        p.plot()
+        # p.plot()
