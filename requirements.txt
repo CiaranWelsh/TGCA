@@ -66,7 +66,7 @@ patsy==0.5.1
 pexpect==4.7.0
 phrasedml==1.0.9
 pickleshare==0.7.5
-Pillow==6.2.1
+Pillow==8.3.2
 plotly==4.2.1
 pluggy==0.13.0
 prometheus-client==0.7.1
